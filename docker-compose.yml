@@ -1,0 +1,42 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+#      - postgresql:/var/lib/postgresql/data
+
+  cache:
+    image: 'bitnami/redis:latest'
+    container_name: redis
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache:/data
+
+  back:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - BASE_PORT=3000
+      - HOST=db
+      - USERNAME=postgres
+      - PASS=password
+      - DB=jewelery
+      - REDIS_HOST=cache
+      - prod=true
+
+volumes:
+  postgresql:
+  cache:
+    driver: local
